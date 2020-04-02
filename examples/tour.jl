@@ -17,25 +17,20 @@ using Onda, Dates, Test
 # specification; this type corresponds directly to the signal object defined
 # by the specification.
 
-eeg_signal = Signal(channel_names=[:fp1, :f3, :c3, :p3, :f7, :t3, :t5, :o1, :fz,
-                                   :cz, :pz, :fp2, :f4, :c4, :p4, :f8, :t4, :t6,
-                                   :o2], start_nanosecond=Nanosecond(0),
-                    stop_nanosecond=Nanosecond(Second(20)),
+eeg_signal = Signal(channel_names=[:fp1, :f3, :c3, :p3, :f7, :t3, :t5, :o1, :fz, :cz, :pz,
+                                   :fp2, :f4, :c4, :p4, :f8, :t4, :t6, :o2],
+                    start_nanosecond=Nanosecond(0), stop_nanosecond=Nanosecond(Second(20)),
                     sample_unit=:microvolts, sample_resolution_in_unit=0.25,
-                    sample_offset_in_unit=0.0, sample_type=Int16,
-                    sample_rate=256.0, # Hz
+                    sample_offset_in_unit=0.0, sample_type=Int16, sample_rate=256.0, # Hz
                     file_extension=:lpcm, file_options=nothing)
 
 ecg_signal = signal_from_template(eeg_signal; channel_names=[:avl, :avr],
                                   file_extension=Symbol("lpcm.zst"))
 
-spo2_signal = Signal(channel_names=[:spo2],
-                     start_nanosecond=Nanosecond(Second(3)),
-                     stop_nanosecond=Nanosecond(Second(17)),
-                     sample_unit=:percentage,
+spo2_signal = Signal(channel_names=[:spo2], start_nanosecond=Nanosecond(Second(3)),
+                     stop_nanosecond=Nanosecond(Second(17)), sample_unit=:percentage,
                      sample_resolution_in_unit=(100 / typemax(UInt8)),
-                     sample_offset_in_unit=0.0, sample_type=UInt8,
-                     sample_rate=20.5, # Hz
+                     sample_offset_in_unit=0.0, sample_type=UInt8, sample_rate=20.5, # Hz
                      file_extension=:lpcm, file_options=nothing)
 
 ###############################################################################
@@ -64,9 +59,7 @@ ecg = encode(Samples(ecg_signal, false, saws(ecg_signal)))
 spo2 = encode(Samples(spo2_signal, false, saws(spo2_signal)))
 
 # Here are some basic functions for examining `Samples` instances:
-@test sample_count(eeg) ==
-      sample_count(eeg_signal) ==
-      20 * eeg_signal.sample_rate
+@test sample_count(eeg) == sample_count(eeg_signal) == 20 * eeg_signal.sample_rate
 @test channel_count(eeg) == channel_count(eeg_signal) == 19
 @test channel(eeg, :f3) == channel(eeg_signal, :f3) == 2
 @test channel(eeg, 2) == channel(eeg_signal, 2) == :f3
@@ -81,8 +74,7 @@ span_range = index_from_time(eeg.signal.sample_rate, slice_span)
 @test eeg[:f3, 1:10].data == view(eeg, 2, 1:10).data
 @test eeg[:f3, slice_span].data == view(eeg, 2, span_range).data
 @test eeg[[:f3, :c3, :p3], 1:10].data == view(eeg, 2:4, 1:10).data
-@test eeg[[:c3, 4, :f3], slice_span].data ==
-      view(eeg, [3, 4, 2], span_range).data
+@test eeg[[:c3, 4, :f3], slice_span].data == view(eeg, [3, 4, 2], span_range).data
 
 # NOTE: Keep in mind that `duration(samples.signal)` is not generally equivalent
 # to `duration(samples)`; the former is the duration of the original signal in
@@ -133,8 +125,7 @@ store!(dataset, uuid, :spo2, spo2)
 # like in there. For example, Beacon Biosignals stores JSON snippets in
 # annotations. Here, let's just go the simple route and pretend we found an
 # epileptiform spike in our EEG/ECG/SpO2 recording:
-spike_annotation = Annotation("epileptiform_spike",
-                              TimeSpan(Millisecond(1500), Second(2)))
+spike_annotation = Annotation("epileptiform_spike", TimeSpan(Millisecond(1500), Second(2)))
 annotate!(recording, spike_annotation)
 
 # You can add as many annotations as you'd like to a recording. Just keep in mind
@@ -182,8 +173,7 @@ spike_segment = load(dataset, uuid, :eeg, spike_annotation)
 @test TimeSpan(spike_annotation) ==
       TimeSpan(first(spike_annotation), last(spike_annotation))
 @test spike_segment.data == load(dataset, uuid, :eeg)[:, spike_annotation].data
-@test spike_segment.data ==
-      load(dataset, uuid, :eeg, TimeSpan(spike_annotation)).data
+@test spike_segment.data == load(dataset, uuid, :eeg, TimeSpan(spike_annotation)).data
 
 # NOTE: `load(..., span)` may still have to read the entire signal from disk if
 # the signal's file format doesn't support seek access. For this reason - and

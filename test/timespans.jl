@@ -40,10 +40,10 @@ end
 end
 
 @testset "shortest_timespan_containing(spans)" begin
-    @test shortest_timespan_containing([TimeSpan(1, 2), TimeSpan(5, 10),
-                                        TimeSpan(2, 3)]) == TimeSpan(1, 10)
-    @test shortest_timespan_containing([TimeSpan(3, 7), TimeSpan(1, 10),
-                                        TimeSpan(2, 5)]) == TimeSpan(1, 10)
+    @test shortest_timespan_containing([TimeSpan(1, 2), TimeSpan(5, 10), TimeSpan(2, 3)]) ==
+          TimeSpan(1, 10)
+    @test shortest_timespan_containing([TimeSpan(3, 7), TimeSpan(1, 10), TimeSpan(2, 5)]) ==
+          TimeSpan(1, 10)
 end
 
 @testset "time <--> index conversion" begin

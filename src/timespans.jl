@@ -194,8 +194,7 @@ julia> time_from_index(100, 101)
 """
 function time_from_index(sample_rate, index)
     index > 0 || throw(ArgumentError("`index` must be > 0"))
-    return Nanosecond(ceil(Int,
-                           (index - 1) * nanoseconds_per_sample(sample_rate)))
+    return Nanosecond(ceil(Int, (index - 1) * nanoseconds_per_sample(sample_rate)))
 end
 
 """
@@ -217,6 +216,5 @@ TimeSpan(3000000000 nanoseconds, 6000000000 nanoseconds)
 function time_from_index(sample_rate, sample_range::AbstractUnitRange)
     i, j = first(sample_range), last(sample_range)
     j = j == i ? j : j + 1
-    return TimeSpan(time_from_index(sample_rate, i),
-                    time_from_index(sample_rate, j))
+    return TimeSpan(time_from_index(sample_rate, i), time_from_index(sample_rate, j))
 end

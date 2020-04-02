@@ -45,8 +45,7 @@ Overwrite `joinpath(dataset.path, "recordings.msgpack.zst")` with the contents
 of `dataset.recordings`.
 """
 function save_recordings_file(dataset::Dataset)
-    return write_recordings_file(dataset.path, dataset.header,
-                                 dataset.recordings)
+    return write_recordings_file(dataset.path, dataset.header, dataset.recordings)
 end
 
 #####
@@ -146,8 +145,7 @@ partial access/random seeks.
 
 See also: [`deserialize_lpcm`](@ref)
 """
-function load(dataset::Dataset, uuid::UUID, name::Symbol,
-              span::AbstractTimeSpan...)
+function load(dataset::Dataset, uuid::UUID, name::Symbol, span::AbstractTimeSpan...)
     signal = dataset.recordings[uuid].signals[name]
     path = samples_path(dataset, uuid, name, signal.file_extension)
     return load_samples(path, signal, span...)
@@ -198,8 +196,8 @@ function store!(dataset::Dataset, uuid::UUID, name::Symbol, samples::Samples;
         throw(ArgumentError("$name is not lower snake case and alphanumeric"))
     end
     recording.signals[name] = signal
-    store_samples!(samples_path(dataset, uuid, name, signal.file_extension),
-                   samples; overwrite=overwrite)
+    store_samples!(samples_path(dataset, uuid, name, signal.file_extension), samples;
+                   overwrite=overwrite)
     return recording
 end
 

@@ -12,8 +12,7 @@ const ONDA_FORMAT_VERSION = v"0.3"
 #####
 
 function is_supported_onda_format_version(v::VersionNumber)
-    onda_major,
-    onda_minor = ONDA_FORMAT_VERSION.major, ONDA_FORMAT_VERSION.minor
+    onda_major, onda_minor = ONDA_FORMAT_VERSION.major, ONDA_FORMAT_VERSION.minor
     return onda_major == v.major && (onda_major != 0 || onda_minor == v.minor)
 end
 
@@ -22,8 +21,7 @@ const ALPHANUMERIC_SNAKE_CASE_CHARACTERS = Char['_', '0':'9'..., 'a':'z'...]
 function is_lower_snake_case_alphanumeric(x::AbstractString, also_allow=())
     return !startswith(x, '_') &&
            !endswith(x, '_') &&
-           all(i -> i in ALPHANUMERIC_SNAKE_CASE_CHARACTERS || i in also_allow,
-               x)
+           all(i -> i in ALPHANUMERIC_SNAKE_CASE_CHARACTERS || i in also_allow, x)
 end
 
 function zstd_compress(bytes::Vector{UInt8}, level=3)
@@ -53,24 +51,21 @@ zstd_decompress(reader, io::IO) = reader(ZstdDecompressorStream(io))
 #####
 
 include("timespans.jl")
-export AbstractTimeSpan, TimeSpan, contains, overlaps,
-       shortest_timespan_containing, index_from_time, time_from_index, duration
+export AbstractTimeSpan, TimeSpan, contains, overlaps, shortest_timespan_containing,
+       index_from_time, time_from_index, duration
 
 include("recordings.jl")
-export Recording, Signal, signal_from_template, Annotation, annotate!, span,
-       sizeof_samples
+export Recording, Signal, signal_from_template, Annotation, annotate!, span, sizeof_samples
 
 include("serialization.jl")
-export AbstractLPCMSerializer, serializer, deserialize_lpcm, serialize_lpcm,
-       LPCM, LPCMZst
+export AbstractLPCMSerializer, serializer, deserialize_lpcm, serialize_lpcm, LPCM, LPCMZst
 
 include("samples.jl")
-export Samples, encode, encode!, decode, decode!, channel, channel_count,
-       sample_count
+export Samples, encode, encode!, decode, decode!, channel, channel_count, sample_count
 
 include("dataset.jl")
-export Dataset, samples_path, create_recording!, set_span!, load, store!,
-       delete!, save_recordings_file
+export Dataset, samples_path, create_recording!, set_span!, load, store!, delete!,
+       save_recordings_file
 
 include("printing.jl")
 
@@ -103,8 +98,7 @@ A couple of the Onda v0.2 -> v0.3 changes require some special handling:
   fields are combined into the single new `value` field via the provided callback
   `combine_annotation_key_value(annotation_key, annotation_value)`.
 """
-function upgrade_onda_format_from_v0_2_to_v0_3!(path,
-                                                combine_annotation_key_value)
+function upgrade_onda_format_from_v0_2_to_v0_3!(path, combine_annotation_key_value)
     file_path = joinpath(path, "recordings.msgpack.zst")
     bytes = zstd_decompress(read(file_path))
     mv(file_path, joinpath(path, "old.recordings.msgpack.zst.backup"))
@@ -134,8 +128,7 @@ function upgrade_onda_format_from_v0_2_to_v0_3!(path,
         delete!(recording, "duration_in_nanoseconds")
         delete!(recording, "custom")
     end
-    fixed_recordings = MsgPack.unpack(MsgPack.pack(recordings),
-                                      Dict{UUID,Recording})
+    fixed_recordings = MsgPack.unpack(MsgPack.pack(recordings), Dict{UUID,Recording})
     dataset = Dataset(path, Header(v"0.3.0", true), fixed_recordings)
     save_recordings_file(dataset)
     return dataset

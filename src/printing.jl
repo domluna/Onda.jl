@@ -13,16 +13,13 @@ function Base.show(io::IO, samples::Samples)
         print(io, "Samples(", summary(samples.data), ')')
     else
         duration_in_seconds = size(samples.data, 2) / samples.signal.sample_rate
-        duration_in_nanoseconds = round(Int,
-                                        duration_in_seconds * 1_000_000_000)
+        duration_in_nanoseconds = round(Int, duration_in_seconds * 1_000_000_000)
         println(io, "Samples (", format_duration(duration_in_nanoseconds), "):")
         println(io, "  signal.channel_names: ",
                 channel_names_string(samples.signal.channel_names))
-        println(io, "  signal.start_nanosecond: ",
-                samples.signal.start_nanosecond, " (",
+        println(io, "  signal.start_nanosecond: ", samples.signal.start_nanosecond, " (",
                 format_duration(samples.signal.start_nanosecond), ")")
-        println(io, "  signal.stop_nanosecond: ",
-                samples.signal.stop_nanosecond, " (",
+        println(io, "  signal.stop_nanosecond: ", samples.signal.stop_nanosecond, " (",
                 format_duration(samples.signal.stop_nanosecond), ")")
         println(io, "  signal.sample_unit: ", repr(samples.signal.sample_unit))
         println(io, "  signal.sample_resolution_in_unit: ",
@@ -31,10 +28,8 @@ function Base.show(io::IO, samples::Samples)
                 samples.signal.sample_offset_in_unit)
         println(io, "  signal.sample_type: ", samples.signal.sample_type)
         println(io, "  signal.sample_rate: ", samples.signal.sample_rate, " Hz")
-        println(io, "  signal.file_extension: ",
-                repr(samples.signal.file_extension))
-        println(io, "  signal.file_options: ",
-                repr(samples.signal.file_options))
+        println(io, "  signal.file_extension: ", repr(samples.signal.file_extension))
+        println(io, "  signal.file_options: ", repr(samples.signal.file_options))
         println(io, "  encoded: ", samples.encoded)
         println(io, "  data:")
         show(io, "text/plain", samples.data)
@@ -46,15 +41,13 @@ function Base.show(io::IO, signal::Signal)
         print(io, "Signal(", channel_names_string(signal.channel_names), ")")
     else
         println(io, "Signal:")
-        println(io, "  channel_names: ",
-                channel_names_string(signal.channel_names))
+        println(io, "  channel_names: ", channel_names_string(signal.channel_names))
         println(io, "  start_nanosecond: ", signal.start_nanosecond, " (",
                 format_duration(signal.start_nanosecond), ")")
         println(io, "  stop_nanosecond: ", signal.stop_nanosecond, " (",
                 format_duration(signal.stop_nanosecond), ")")
         println(io, "  sample_unit: ", repr(signal.sample_unit))
-        println(io, "  sample_resolution_in_unit: ",
-                signal.sample_resolution_in_unit)
+        println(io, "  sample_resolution_in_unit: ", signal.sample_resolution_in_unit)
         println(io, "  sample_offset_in_unit: ", signal.sample_offset_in_unit)
         println(io, "  sample_type: ", signal.sample_type)
         println(io, "  sample_rate: ", signal.sample_rate, " Hz")
@@ -73,8 +66,7 @@ function Base.show(io::IO, recording::Recording)
             duration_string = "<no signals>"
         else
             duration_string = string(format_duration(duration(recording)), "; ",
-                                     duration(recording).value / 1_000_000_000,
-                                     " seconds")
+                                     duration(recording).value / 1_000_000_000, " seconds")
         end
         println(io, "Recording (", duration_string, ')')
         println(io, "  signals:")
@@ -87,8 +79,7 @@ function Base.show(io::IO, recording::Recording)
 end
 
 function Base.show(io::IO, dataset::Dataset)
-    print(io, "Dataset(", dataset.path, ", ", length(dataset.recordings),
-          " recordings)")
+    print(io, "Dataset(", dataset.path, ", ", length(dataset.recordings), " recordings)")
 end
 
 #####

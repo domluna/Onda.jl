@@ -52,8 +52,7 @@ for f in (:getindex, :view)
             signal = rows isa Colon ? samples.signal :
                      signal_from_template(samples.signal;
                                           channel_names=samples.signal.channel_names[rows])
-            return Samples(signal, samples.encoded,
-                           $f(samples.data, rows, columns))
+            return Samples(signal, samples.encoded, $f(samples.data, rows, columns))
         end
         Base.@deprecate $f(samples::Samples, columns) $f(samples, :, columns)
     end
@@ -62,8 +61,7 @@ end
 _rangify(i) = i
 _rangify(i::Integer) = i:i
 
-function _indices_fallback(f, samples::Samples,
-                           i::Union{Colon,AbstractRange,Integer})
+function _indices_fallback(f, samples::Samples, i::Union{Colon,AbstractRange,Integer})
     i
 end
 _indices_fallback(f, samples::Samples, args) = map(x -> f(samples, x), args)
@@ -142,16 +140,14 @@ sample_count(samples::Samples) = size(samples.data, 2)
 ##### encoding utilities
 #####
 
-const VALID_SAMPLE_TYPE_UNION = Union{Int8,Int16,Int32,Int64,UInt8,UInt16,
-                                      UInt32,UInt64}
+const VALID_SAMPLE_TYPE_UNION = Union{Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64}
 
-function encode_sample(::Type{S}, resolution_in_unit, offset_in_unit,
-                       sample_in_unit,
+function encode_sample(::Type{S}, resolution_in_unit, offset_in_unit, sample_in_unit,
                        noise=zero(sample_in_unit)) where {S<:VALID_SAMPLE_TYPE_UNION}
     sample_in_unit += noise
     isnan(sample_in_unit) && return typemax(S)
-    from_unit = clamp((sample_in_unit - offset_in_unit) / resolution_in_unit,
-                      typemin(S), typemax(S))
+    from_unit = clamp((sample_in_unit - offset_in_unit) / resolution_in_unit, typemin(S),
+                      typemax(S))
     return round(S, from_unit)
 end
 
@@ -197,10 +193,10 @@ Otherwise, `dither_storage` must be a container of similar shape and type to
 `samples`. This container is then used to store the random noise needed for the
 triangular dithering process, which is applied to the signal prior to quantization.
 """
-function encode(::Type{S}, sample_resolution_in_unit, sample_offset_in_unit,
-                samples, dither_storage=nothing) where {S}
-    return encode!(similar(samples, S), S, sample_resolution_in_unit,
-                   sample_offset_in_unit, samples, dither_storage)
+function encode(::Type{S}, sample_resolution_in_unit, sample_offset_in_unit, samples,
+                dither_storage=nothing) where {S}
+    return encode!(similar(samples, S), S, sample_resolution_in_unit, sample_offset_in_unit,
+                   samples, dither_storage)
 end
 
 """
@@ -214,16 +210,14 @@ but write encoded values to `result_storage` rather than allocating new storage.
 
 `sample_type` defaults to `eltype(result_storage)` if it is not provided.
 """
-function encode!(result_storage, sample_resolution_in_unit,
-                 sample_offset_in_unit, samples, dither_storage=nothing)
-    return encode!(result_storage, eltype(result_storage),
-                   sample_resolution_in_unit, sample_offset_in_unit, samples,
-                   dither_storage=nothing)
+function encode!(result_storage, sample_resolution_in_unit, sample_offset_in_unit, samples,
+                 dither_storage=nothing)
+    return encode!(result_storage, eltype(result_storage), sample_resolution_in_unit,
+                   sample_offset_in_unit, samples, dither_storage=nothing)
 end
 
 function encode!(result_storage, ::Type{S}, sample_resolution_in_unit,
-                 sample_offset_in_unit, samples,
-                 dither_storage=nothing) where {S}
+                 sample_offset_in_unit, samples, dither_storage=nothing) where {S}
     if dither_storage isa Nothing
         broadcast!(encode_sample, result_storage, S, sample_resolution_in_unit,
                    sample_offset_in_unit, samples)
@@ -254,10 +248,8 @@ If `samples.encoded` is `true`, this function is the identity.
 """
 function encode(samples::Samples, dither_storage=nothing)
     samples.encoded && return samples
-    data = encode(samples.signal.sample_type,
-                  samples.signal.sample_resolution_in_unit,
-                  samples.signal.sample_offset_in_unit, samples.data,
-                  dither_storage)
+    data = encode(samples.signal.sample_type, samples.signal.sample_resolution_in_unit,
+                  samples.signal.sample_offset_in_unit, samples.data, dither_storage)
     return Samples(samples.signal, true, data)
 end
 
@@ -281,8 +273,8 @@ function encode!(result_storage, samples::Samples, dither_storage=nothing)
         return Samples(samples.signal, samples.encoded, result_storage)
     end
     encode!(result_storage, samples.signal.sample_type,
-            samples.signal.sample_resolution_in_unit,
-            samples.signal.sample_offset_in_unit, samples.data, dither_storage)
+            samples.signal.sample_resolution_in_unit, samples.signal.sample_offset_in_unit,
+            samples.data, dither_storage)
     return Samples(samples.signal, true, result_storage)
 end
 
@@ -305,8 +297,7 @@ end
 Similar to `decode(sample_resolution_in_unit, sample_offset_in_unit, samples)`, but
 write decoded values to `result_storage` rather than allocating new storage.
 """
-function decode!(result_storage, sample_resolution_in_unit,
-                 sample_offset_in_unit, samples)
+function decode!(result_storage, sample_resolution_in_unit, sample_offset_in_unit, samples)
     f = x -> sample_resolution_in_unit * x + sample_offset_in_unit
     return broadcast!(f, result_storage, samples)
 end
@@ -354,17 +345,15 @@ function load_samples(file_path::AbstractString, signal::Signal;
     return Samples(signal, true, deserialize_lpcm(read(file_path), serializer))
 end
 
-function load_samples(file_path::AbstractString, signal::Signal,
-                      span::AbstractTimeSpan; serializer=serializer(signal))
+function load_samples(file_path::AbstractString, signal::Signal, span::AbstractTimeSpan;
+                      serializer=serializer(signal))
     sample_range = index_from_time(signal.sample_rate, span)
     offset, n = first(sample_range) - 1, length(sample_range)
-    data = open(io -> deserialize_lpcm(io, serializer, offset, n), file_path,
-                "r")
+    data = open(io -> deserialize_lpcm(io, serializer, offset, n), file_path, "r")
     return Samples(signal, true, data)
 end
 
-function store_samples!(file_path::AbstractString, samples::Samples;
-                        overwrite::Bool=true,
+function store_samples!(file_path::AbstractString, samples::Samples; overwrite::Bool=true,
                         serializer=serializer(samples.signal))
     overwrite || (isfile(file_path) &&
      error("overwrite disabled but file path already exists: $(file_path)"))
