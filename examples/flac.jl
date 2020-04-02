@@ -32,35 +32,40 @@ struct FLAC{S} <: Onda.AbstractLPCMSerializer
     level::Int
     function FLAC(lpcm::LPCM{S}; sample_rate, level=5) where {S}
         sizeof(S) in (1, 2) || throw(ArgumentError("bit depth must be 8 or 16"))
-        1 <= lpcm.channel_count <= 8 || throw(ArgumentError("channel count must be between 1 and 8"))
+        1 <= lpcm.channel_count <= 8 ||
+        throw(ArgumentError("channel count must be between 1 and 8"))
         return new{S}(lpcm, sample_rate, level)
     end
 end
 
-FLAC(signal::Signal; kwargs...) = FLAC(LPCM(signal); sample_rate=signal.sample_rate,
-                                       kwargs...)
+function FLAC(signal::Signal; kwargs...)
+    FLAC(LPCM(signal); sample_rate=signal.sample_rate, kwargs...)
+end
 
 Onda.serializer_constructor_for_file_extension(::Val{:flac}) = FLAC
 
 function flac_raw_specification_flags(serializer::FLAC{S}) where {S}
-    return (level="--compression-level-$(serializer.level)",
-            endian="--endian=little",
-            channels="--channels=$(serializer.lpcm.channel_count)",
-            bps="--bps=$(sizeof(S) * 8)",
-            sample_rate="--sample-rate=$(serializer.sample_rate)",
-            is_signed=string("--sign=", S <: Signed ? "signed" : "unsigned"))
+    return (level = "--compression-level-$(serializer.level)",
+            endian = "--endian=little",
+            channels = "--channels=$(serializer.lpcm.channel_count)",
+            bps = "--bps=$(sizeof(S) * 8)",
+            sample_rate = "--sample-rate=$(serializer.sample_rate)",
+            is_signed = string("--sign=", S <: Signed ? "signed" : "unsigned"))
 end
 
 function Onda.deserialize_lpcm(io::IO, serializer::FLAC, args...)
     flags = flac_raw_specification_flags(serializer)
-    command = pipeline(`flac - --totally-silent -d --force-raw-format $(flags.endian) $(flags.is_signed)`; stdin=io)
-    return open(lpcm_io -> deserialize_lpcm(lpcm_io, serializer.lpcm, args...), command, "r")
+    command = pipeline(`flac - --totally-silent -d --force-raw-format $(flags.endian) $(flags.is_signed)`;
+                       stdin=io)
+    return open(lpcm_io -> deserialize_lpcm(lpcm_io, serializer.lpcm, args...),
+                command, "r")
 end
 
 function Onda.serialize_lpcm(io::IO, samples::AbstractMatrix, serializer::FLAC)
     flags = flac_raw_specification_flags(serializer)
     command = pipeline(`flac --totally-silent $(flags) -`; stdout=io)
-    return open(lpcm_io -> serialize_lpcm(lpcm_io, samples, serializer.lpcm), command, "w")
+    return open(lpcm_io -> serialize_lpcm(lpcm_io, samples, serializer.lpcm),
+                command, "w")
 end
 
 #####
@@ -69,13 +74,17 @@ end
 
 if VERSION >= v"1.1.0"
     @testset "FLAC example" begin
-        signal = Signal([:a, :b, :c], Nanosecond(0), Nanosecond(0), :unit, 0.25, 0.0, Int16, 50.0, :flac, Dict(:level => 2))
-        samples = encode(Samples(signal, false, rand(MersenneTwister(1), 3, 50 * 10))).data
+        signal = Signal([:a, :b, :c], Nanosecond(0), Nanosecond(0), :unit, 0.25,
+                        0.0, Int16, 50.0, :flac, Dict(:level => 2))
+        samples = encode(Samples(signal, false,
+                                 rand(MersenneTwister(1), 3, 50 * 10))).data
         s = serializer(signal)
         bytes = serialize_lpcm(samples, s)
         @test deserialize_lpcm(bytes, s) == samples
         @test deserialize_lpcm(IOBuffer(bytes), s) == samples
-        io = IOBuffer(); serialize_lpcm(io, samples, s); seekstart(io)
+        io = IOBuffer()
+        serialize_lpcm(io, samples, s)
+        seekstart(io)
         @test take!(io) == bytes
     end
 else

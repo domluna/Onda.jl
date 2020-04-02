@@ -1,10 +1,14 @@
 using Test, Onda, Dates, Random, UUIDs
 
 @testset "pretty printing" begin
-    @test repr(TimeSpan(6149872364198, 123412345678910)) == "TimeSpan(01:42:29.872364198, 34:16:52.345678910)"
+    @test repr(TimeSpan(6149872364198, 123412345678910)) ==
+          "TimeSpan(01:42:29.872364198, 34:16:52.345678910)"
 
-    signal = Signal([:a, :b, Symbol("c-d")], Nanosecond(3), Nanosecond(Second(12345)), :unit, 0.25, -0.5, Int16, 50.2, Symbol("lpcm.zst"), nothing)
-    @test sprint(show, signal, context=(:compact => true)) == "Signal([:a, :b, Symbol(\"c-d\")])"
+    signal = Signal([:a, :b, Symbol("c-d")], Nanosecond(3),
+                    Nanosecond(Second(12345)), :unit, 0.25, -0.5, Int16, 50.2,
+                    Symbol("lpcm.zst"), nothing)
+    @test sprint(show, signal, context=(:compact => true)) ==
+          "Signal([:a, :b, Symbol(\"c-d\")])"
     @test sprint(show, signal) == """
                                   Signal:
                                     channel_names: [:a, :b, Symbol(\"c-d\")]
@@ -18,8 +22,10 @@ using Test, Onda, Dates, Random, UUIDs
                                     file_extension: Symbol(\"lpcm.zst\")
                                     file_options: nothing"""
 
-    samples = Samples(signal, true, rand(Random.MersenneTwister(0), signal.sample_type, 3, 5))
-    @test sprint(show, samples, context=(:compact => true)) == "Samples(3×5 Array{Int16,2})"
+    samples = Samples(signal, true,
+                      rand(Random.MersenneTwister(0), signal.sample_type, 3, 5))
+    @test sprint(show, samples, context=(:compact => true)) ==
+          "Samples(3×5 Array{Int16,2})"
     @test sprint(show, samples) == """
                                    Samples (00:00:00.099601594):
                                      signal.channel_names: [:a, :b, Symbol(\"c-d\")]

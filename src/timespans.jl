@@ -141,7 +141,8 @@ julia> index_from_time(100, Millisecond(1000))
 """
 function index_from_time(sample_rate, sample_time)
     time_in_nanoseconds = convert(Nanosecond, sample_time).value
-    time_in_nanoseconds >= 0 || throw(ArgumentError("`sample_time` must be >= 0 nanoseconds"))
+    time_in_nanoseconds >= 0 ||
+    throw(ArgumentError("`sample_time` must be >= 0 nanoseconds"))
     ns_per_sample = nanoseconds_per_sample(sample_rate)
     return floor(Int, time_in_nanoseconds / ns_per_sample) + 1
 end
@@ -193,7 +194,8 @@ julia> time_from_index(100, 101)
 """
 function time_from_index(sample_rate, index)
     index > 0 || throw(ArgumentError("`index` must be > 0"))
-    return Nanosecond(ceil(Int, (index - 1) * nanoseconds_per_sample(sample_rate)))
+    return Nanosecond(ceil(Int,
+                           (index - 1) * nanoseconds_per_sample(sample_rate)))
 end
 
 """

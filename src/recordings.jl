@@ -15,8 +15,12 @@ MsgPack.from_msgpack(::Type{UUID}, x::String) = UUID(x)
 MsgPack.to_msgpack(::MsgPack.StringType, x::UUID) = string(x)
 
 MsgPack.msgpack_type(::Type{DataType}) = MsgPack.StringType()
-MsgPack.from_msgpack(::Type{DataType}, x::String) = julia_type_from_onda_sample_type(x)
-MsgPack.to_msgpack(::MsgPack.StringType, T::DataType) = onda_sample_type_from_julia_type(T)
+function MsgPack.from_msgpack(::Type{DataType}, x::String)
+    julia_type_from_onda_sample_type(x)
+end
+function MsgPack.to_msgpack(::MsgPack.StringType, T::DataType)
+    onda_sample_type_from_julia_type(T)
+end
 
 #####
 ##### Julia DataType <--> Onda `sample_type` string
@@ -64,7 +68,8 @@ struct Annotation <: AbstractTimeSpan
     value::String
     start_nanosecond::Nanosecond
     stop_nanosecond::Nanosecond
-    function Annotation(value::AbstractString, start::Nanosecond, stop::Nanosecond)
+    function Annotation(value::AbstractString, start::Nanosecond,
+                        stop::Nanosecond)
         _validate_timespan(start, stop)
         return new(value, start, stop)
     end
@@ -113,29 +118,35 @@ Base.@kwdef struct Signal
     file_extension::Symbol
     file_options::Union{Nothing,Dict{Symbol,Any}}
     function Signal(channel_names, start_nanosecond, stop_nanosecond,
-                    sample_unit, sample_resolution_in_unit, sample_offset_in_unit,
-                    sample_type, sample_rate, file_extension, file_options)
+                    sample_unit, sample_resolution_in_unit,
+                    sample_offset_in_unit, sample_type, sample_rate,
+                    file_extension, file_options)
         _validate_timespan(start_nanosecond, stop_nanosecond)
         return new(channel_names, start_nanosecond, stop_nanosecond,
-                   sample_unit, sample_resolution_in_unit, sample_offset_in_unit,
-                   sample_type, sample_rate, file_extension, file_options)
+                   sample_unit, sample_resolution_in_unit,
+                   sample_offset_in_unit, sample_type, sample_rate,
+                   file_extension, file_options)
     end
 end
 
 function Base.:(==)(a::Signal, b::Signal)
-    return all(name -> getfield(a, name) == getfield(b, name), fieldnames(Signal))
+    return all(name -> getfield(a, name) == getfield(b, name),
+               fieldnames(Signal))
 end
 
 MsgPack.msgpack_type(::Type{Signal}) = MsgPack.StructType()
 
 function is_valid(signal::Signal)
     return is_lower_snake_case_alphanumeric(string(signal.sample_unit)) &&
-           all(n -> is_lower_snake_case_alphanumeric(string(n), ('-', '.')), signal.channel_names) &&
-           onda_sample_type_from_julia_type(signal.sample_type) isa AbstractString
+           all(n -> is_lower_snake_case_alphanumeric(string(n), ('-', '.')),
+               signal.channel_names) &&
+           onda_sample_type_from_julia_type(signal.sample_type) isa
+           AbstractString
 end
 
 function file_option(signal::Signal, name, default)
-    signal.file_options isa Dict && return get(signal.file_options, name, default)
+    signal.file_options isa Dict &&
+    return get(signal.file_options, name, default)
     return default
 end
 
@@ -165,9 +176,9 @@ function signal_from_template(signal::Signal;
                               sample_rate=signal.sample_rate,
                               file_extension=signal.file_extension,
                               file_options=signal.file_options)
-    return Signal(channel_names, start_nanosecond, stop_nanosecond,
-                  sample_unit, sample_resolution_in_unit, sample_offset_in_unit,
-                  sample_type, sample_rate, file_extension, file_options)
+    return Signal(channel_names, start_nanosecond, stop_nanosecond, sample_unit,
+                  sample_resolution_in_unit, sample_offset_in_unit, sample_type,
+                  sample_rate, file_extension, file_options)
 end
 
 """
@@ -175,7 +186,9 @@ end
 
 Return `i` where `signal.channel_names[i] == name`.
 """
-channel(signal::Signal, name::Symbol) = findfirst(isequal(name), signal.channel_names)
+function channel(signal::Signal, name::Symbol)
+    findfirst(isequal(name), signal.channel_names)
+end
 
 """
     channel(signal::Signal, i::Integer)
@@ -211,7 +224,9 @@ duration(signal::Signal) = duration(span(signal))
 Return the number of multichannel samples that fit within `duration(signal)`
 given `signal.sample_rate`.
 """
-sample_count(signal::Signal) = index_from_time(signal.sample_rate, duration(signal)) - 1
+function sample_count(signal::Signal)
+    index_from_time(signal.sample_rate, duration(signal)) - 1
+end
 
 """
     sizeof_samples(signal::Signal)
@@ -221,7 +236,9 @@ to the entirety of `signal`:
 
     sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
 """
-sizeof_samples(signal::Signal) = sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
+function sizeof_samples(signal::Signal)
+    sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
+end
 
 #####
 ##### recordings
@@ -242,7 +259,8 @@ struct Recording
 end
 
 function Base.:(==)(a::Recording, b::Recording)
-    return all(name -> getfield(a, name) == getfield(b, name), fieldnames(Recording))
+    return all(name -> getfield(a, name) == getfield(b, name),
+               fieldnames(Recording))
 end
 
 MsgPack.msgpack_type(::Type{Recording}) = MsgPack.StructType()
@@ -252,7 +270,9 @@ MsgPack.msgpack_type(::Type{Recording}) = MsgPack.StructType()
 
 Returns `push!(recording.annotations, annotation)`.
 """
-annotate!(recording::Recording, annotation::Annotation) = push!(recording.annotations, annotation)
+function annotate!(recording::Recording, annotation::Annotation)
+    push!(recording.annotations, annotation)
+end
 
 """
     duration(recording::Recording)
@@ -261,7 +281,8 @@ Returns `maximum(s -> s.stop_nanosecond, values(recording.signals))`; throws an
 `ArgumentError` if `recording.signals` is empty.
 """
 function duration(recording::Recording)
-    isempty(recording.signals) && throw(ArgumentError("`duration(recording)` is not defined if `isempty(recording.signals)`"))
+    isempty(recording.signals) &&
+    throw(ArgumentError("`duration(recording)` is not defined if `isempty(recording.signals)`"))
     return maximum(s -> s.stop_nanosecond, values(recording.signals))
 end
 
@@ -286,7 +307,8 @@ end
 Return `Dict(name => set_span!(recording, name, span) for name in keys(recording.signals))`
 """
 function set_span!(recording::Recording, span::AbstractTimeSpan)
-    return Dict(name => set_span!(recording, name, span) for name in keys(recording.signals))
+    return Dict(name => set_span!(recording, name, span)
+                for name in keys(recording.signals))
 end
 
 #####
@@ -305,11 +327,13 @@ function read_recordings_file(path)
     bytes = zstd_decompress(read(file_path))
     io = IOBuffer(bytes)
     # `0x92` is the MessagePack byte prefix for 2-element array
-    read(io, UInt8) == 0x92 || error("recordings.msgpack.zst has bad byte prefix")
+    read(io, UInt8) == 0x92 ||
+    error("recordings.msgpack.zst has bad byte prefix")
     header = MsgPack.unpack(io, Header)
     if !is_supported_onda_format_version(header.onda_format_version)
         @warn("attempting to load `Dataset` with unsupported Onda version",
-              supported=ONDA_FORMAT_VERSION, attempting=header.onda_format_version)
+              supported = ONDA_FORMAT_VERSION,
+              attempting = header.onda_format_version)
         @warn("consider upgrading old datasets via `Onda.upgrade_onda_format_from_v0_2_to_v0_3!`")
     end
     strict = header.ordered_keys ? (Recording,) : ()
@@ -317,7 +341,8 @@ function read_recordings_file(path)
     return header, recordings
 end
 
-function write_recordings_file(path, header::Header, recordings::Dict{UUID,Recording})
+function write_recordings_file(path, header::Header,
+                               recordings::Dict{UUID,Recording})
     file_path = joinpath(path, "recordings.msgpack.zst")
     backup_file_path = joinpath(path, "_recordings.msgpack.zst.backup")
     isfile(file_path) && mv(file_path, backup_file_path)

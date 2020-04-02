@@ -22,7 +22,8 @@ function Dataset(path; create::Bool=false)
     samples_path = joinpath(path, "samples")
     if create
         if isdir(path)
-            isempty(readdir(path)) || throw(ArgumentError("cannot create dataset at $path: directory exists and is nonempty"))
+            isempty(readdir(path)) ||
+            throw(ArgumentError("cannot create dataset at $path: directory exists and is nonempty"))
         else
             mkdir(path)
         end
@@ -44,7 +45,8 @@ Overwrite `joinpath(dataset.path, "recordings.msgpack.zst")` with the contents
 of `dataset.recordings`.
 """
 function save_recordings_file(dataset::Dataset)
-    return write_recordings_file(dataset.path, dataset.header, dataset.recordings)
+    return write_recordings_file(dataset.path, dataset.header,
+                                 dataset.recordings)
 end
 
 #####
@@ -66,8 +68,10 @@ is merged, such that no filesystem content is read or written.
 
 NOTE: This function is currently only implemented when `only_recordings = true`.
 """
-function Base.merge!(destination::Dataset, datasets::Dataset...; only_recordings::Bool=false)
-    only_recordings || error("`merge!(datasets::Dataset...; only_recordings=false)` is not yet implemented")
+function Base.merge!(destination::Dataset, datasets::Dataset...;
+                     only_recordings::Bool=false)
+    only_recordings ||
+    error("`merge!(datasets::Dataset...; only_recordings=false)` is not yet implemented")
     for dataset in datasets
         for uuid in keys(dataset.recordings)
             if haskey(destination.recordings, uuid)
@@ -88,7 +92,9 @@ end
 
 Return the samples subdirectory path corresponding to the recording specified by `uuid`.
 """
-samples_path(dataset::Dataset, uuid::UUID) = joinpath(dataset.path, "samples", string(uuid))
+function samples_path(dataset::Dataset, uuid::UUID)
+    joinpath(dataset.path, "samples", string(uuid))
+end
 
 """
     samples_path(dataset::Dataset, uuid::UUID, name::Symbol,
@@ -140,7 +146,8 @@ partial access/random seeks.
 
 See also: [`deserialize_lpcm`](@ref)
 """
-function load(dataset::Dataset, uuid::UUID, name::Symbol, span::AbstractTimeSpan...)
+function load(dataset::Dataset, uuid::UUID, name::Symbol,
+              span::AbstractTimeSpan...)
     signal = dataset.recordings[uuid].signals[name]
     path = samples_path(dataset, uuid, name, signal.file_extension)
     return load_samples(path, signal, span...)
@@ -180,8 +187,8 @@ If `overwrite` is `false`, an error is thrown if `samples` already exists
 in `recording`/`dataset`. Otherwise, existing entries matching `samples.signal`
 will be deleted and replaced with `samples`.
 """
-function store!(dataset::Dataset, uuid::UUID, name::Symbol,
-                samples::Samples; overwrite::Bool=true)
+function store!(dataset::Dataset, uuid::UUID, name::Symbol, samples::Samples;
+                overwrite::Bool=true)
     recording, signal = dataset.recordings[uuid], samples.signal
     if haskey(recording.signals, name) && !overwrite
         throw(ArgumentError("$name already exists in $uuid and `overwrite` is `false`"))

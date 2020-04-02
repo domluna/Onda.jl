@@ -12,12 +12,15 @@ using Test, Onda, Dates, MsgPack
         uuid, recording = create_recording!(dataset)
         Ts = (UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64)
         sample_rate = 50.5
-        signals = Dict(Symbol(:x, i) => Signal(Symbol.([:a, :b, :c], i),
-                                               Nanosecond(0), duration_in_nanoseconds,
-                                               Symbol(:unit, i), 0.25, i, T, sample_rate,
-                                               Symbol("lpcm.zst"), nothing)
-                       for (i, T) in enumerate(Ts))
-        samples = Dict(k => Samples(v, true, rand(v.sample_type, 3, sample_count(v)))
+        signals = Dict(Symbol(:x,
+                              i) => Signal(Symbol.([:a, :b, :c], i),
+                                           Nanosecond(0),
+                                           duration_in_nanoseconds,
+                                           Symbol(:unit, i), 0.25, i, T,
+                                           sample_rate, Symbol("lpcm.zst"),
+                                           nothing) for (i, T) in enumerate(Ts))
+        samples = Dict(k => Samples(v, true,
+                                    rand(v.sample_type, 3, sample_count(v)))
                        for (k, v) in signals)
         for (name, s) in samples
             @test channel_count(s) == length(s.signal.channel_names)
@@ -37,26 +40,28 @@ using Test, Onda, Dates, MsgPack
             decode!(tmp, s)
             @test tmp == d.data
             tmp = similar(d.data)
-            decode!(tmp, s.signal.sample_resolution_in_unit, s.signal.sample_offset_in_unit, s.data)
+            decode!(tmp, s.signal.sample_resolution_in_unit,
+                    s.signal.sample_offset_in_unit, s.data)
             @test tmp == d.data
-            @test d.data == (s.data .* s.signal.sample_resolution_in_unit .+ s.signal.sample_offset_in_unit)
+            @test d.data == (s.data .* s.signal.sample_resolution_in_unit .+
+                   s.signal.sample_offset_in_unit)
             if sizeof(s.signal.sample_type) >= 8
                 # decoding from 64-bit to floating point is fairly lossy
                 tmp = similar(s.data)
-                @test isapprox(encode(d, nothing).data, s.data, rtol = 10)
+                @test isapprox(encode(d, nothing).data, s.data, rtol=10)
                 encode!(tmp, d, nothing)
-                @test isapprox(tmp, s.data, rtol = 10)
-                @test isapprox(encode(d, missing).data, s.data, rtol = 10)
+                @test isapprox(tmp, s.data, rtol=10)
+                @test isapprox(encode(d, missing).data, s.data, rtol=10)
                 encode!(tmp, d, missing)
-                @test isapprox(tmp, s.data, rtol = 10)
+                @test isapprox(tmp, s.data, rtol=10)
             else
                 tmp = similar(s.data)
                 encode!(tmp, d, nothing)
                 @test tmp == s.data
                 @test encode(d, nothing).data == s.data
                 encode!(tmp, d, missing)
-                @test isapprox(tmp, s.data, rtol = 1)
-                @test isapprox(encode(d, missing).data, s.data, rtol = 1)
+                @test isapprox(tmp, s.data, rtol=1)
+                @test isapprox(encode(d, missing).data, s.data, rtol=1)
             end
             chs = s.signal.channel_names
             i = 93
@@ -64,15 +69,17 @@ using Test, Onda, Dates, MsgPack
             t = Onda.time_from_index(s.signal.sample_rate, i)
             t2 = t + Nanosecond(Second(3))
             j = Onda.index_from_time(s.signal.sample_rate, t2) - 1
-            for ch_inds in (:, 1:2, 2:3, 1:3, [3,1], [2,3,1], [1,2,3])
+            for ch_inds in (:, 1:2, 2:3, 1:3, [3, 1], [2, 3, 1], [1, 2, 3])
                 @test s[chs[ch_inds], t].data == s[ch_inds, i].data
-                @test s[chs[ch_inds], TimeSpan(t, t2)].data == s.data[ch_inds, i:j]
+                @test s[chs[ch_inds], TimeSpan(t, t2)].data ==
+                      s.data[ch_inds, i:j]
                 @test s[chs[ch_inds], i:j].data == s.data[ch_inds, i:j]
                 @test s[ch_inds, t].data == s[ch_inds, i].data
                 @test s[ch_inds, TimeSpan(t, t2)].data == s.data[ch_inds, i:j]
                 @test s[ch_inds, i:j].data == s.data[ch_inds, i:j]
             end
-            @test size(s[:, TimeSpan(0, Second(1))].data, 2) == floor(s.signal.sample_rate)
+            @test size(s[:, TimeSpan(0, Second(1))].data, 2) ==
+                  floor(s.signal.sample_rate)
             for i in 1:length(chs)
                 @test channel(s, chs[i]) == i
                 @test channel(s, i) == chs[i]
@@ -106,7 +113,9 @@ using Test, Onda, Dates, MsgPack
             @test xi[:, span].data == xs_span[name].data
         end
         for i in 1:3
-            annotate!(recording, Annotation("value_$i", Nanosecond(i), Nanosecond(i + rand(1:1000000))))
+            annotate!(recording,
+                      Annotation("value_$i", Nanosecond(i),
+                                 Nanosecond(i + rand(1:1000000))))
         end
         save_recordings_file(dataset)
 
@@ -120,7 +129,8 @@ using Test, Onda, Dates, MsgPack
         delete!(dataset.recordings, uuid)
         uuid, recording = create_recording!(dataset)
         foreach(x -> annotate!(recording, x), old_recording.annotations)
-        foreach(x -> store!(dataset, uuid, x, load(old_dataset, old_uuid, x)), keys(old_recording.signals))
+        foreach(x -> store!(dataset, uuid, x, load(old_dataset, old_uuid, x)),
+                keys(old_recording.signals))
         merge!(dataset, old_dataset, only_recordings=true)
         @test length(dataset.recordings) == 2
         r1 = dataset.recordings[old_uuid]
@@ -153,8 +163,8 @@ using Test, Onda, Dates, MsgPack
         # read back everything, but without assuming an order on the metadata
         dataset = Dataset(joinpath(root, "test"))
         Onda.write_recordings_file(dataset.path,
-                                   Onda.Header(dataset.header.onda_format_version, false),
-                                   dataset.recordings)
+                                   Onda.Header(dataset.header.onda_format_version,
+                                               false), dataset.recordings)
         dataset = Dataset(joinpath(root, "test"))
         @test Dict(old_uuid => old_recording) == dataset.recordings
         delete!(dataset, old_uuid)
@@ -168,7 +178,8 @@ using Test, Onda, Dates, MsgPack
         # make sure samples directory is appropriately created if not present
         no_samples_path = joinpath(root, "no_samples_dir.onda")
         mkdir(no_samples_path)
-        cp(joinpath(dataset.path, "recordings.msgpack.zst"), joinpath(no_samples_path, "recordings.msgpack.zst"))
+        cp(joinpath(dataset.path, "recordings.msgpack.zst"),
+           joinpath(no_samples_path, "recordings.msgpack.zst"))
         Dataset(no_samples_path; create=false)
         @test isdir(joinpath(no_samples_path, "samples"))
     end
@@ -178,26 +189,32 @@ end
     mktempdir() do root
         mkdir(joinpath(root, "i_exist.onda"))
         touch(joinpath(root, "i_exist.onda", "memes"))
-        @test_throws ArgumentError Dataset(joinpath(root, "i_exist.onda"); create=true)
+        @test_throws ArgumentError Dataset(joinpath(root, "i_exist.onda");
+                                           create=true)
 
         dataset = Dataset(joinpath(root, "okay.onda"); create=true)
         uuid, recording = create_recording!(dataset)
-        signal = Signal([:a], Nanosecond(0), Nanosecond(Second(10)), :mv, 0.25, 0.0, Int8, 100, Symbol("lpcm.zst"), nothing)
+        signal = Signal([:a], Nanosecond(0), Nanosecond(Second(10)), :mv, 0.25,
+                        0.0, Int8, 100, Symbol("lpcm.zst"), nothing)
         @test_throws DimensionMismatch Samples(signal, true, rand(Int8, 2, 10))
         @test_throws ArgumentError Samples(signal, true, rand(Float32, 1, 10))
         samples = Samples(signal, true, rand(Int8, 1, 10 * 100))
-        @test_throws ArgumentError store!(dataset, uuid, Symbol("***HI***"), samples)
+        @test_throws ArgumentError store!(dataset, uuid, Symbol("***HI***"),
+                                          samples)
         store!(dataset, uuid, :name_okay, samples)
-        @test_throws ArgumentError store!(dataset, uuid, :name_okay, samples; overwrite=false)
+        @test_throws ArgumentError store!(dataset, uuid, :name_okay, samples;
+                                          overwrite=false)
 
-        @test_throws ArgumentError Annotation("hi", Nanosecond(20), Nanosecond(4))
+        @test_throws ArgumentError Annotation("hi", Nanosecond(20),
+                                              Nanosecond(4))
 
         mkdir(joinpath(root, "other.onda"))
         other = Dataset(joinpath(root, "other.onda"); create=true)  # Using existing empty directory
         create_recording!(other, uuid)
         @test_throws ArgumentError create_recording!(other, uuid)
         store!(other, uuid, :cool_stuff, samples)
-        @test_throws ErrorException merge!(dataset, other; only_recordings=false)
+        @test_throws ErrorException merge!(dataset, other;
+                                           only_recordings=false)
         @test_throws ArgumentError merge!(dataset, other; only_recordings=true)
     end
 end
@@ -206,21 +223,30 @@ end
     mktempdir() do new_path
         old_path = joinpath(@__DIR__, "old_test_v0_2.onda")
         cp(old_path, new_path; force=true)
-        dataset = Onda.upgrade_onda_format_from_v0_2_to_v0_3!(new_path, (k, v) -> string(k, '.', v))
+        dataset = Onda.upgrade_onda_format_from_v0_2_to_v0_3!(new_path,
+                                                              (k,
+                                                               v) -> string(k,
+                                                                            '.',
+                                                                            v))
         @test dataset.path == new_path
         @test dataset.header.onda_format_version == v"0.3.0"
         @test dataset.header.ordered_keys
-        old_recordings = MsgPack.unpack(Onda.zstd_decompress(read(joinpath(old_path, "recordings.msgpack.zst"))))[2]
-        new_customs = MsgPack.unpack(Onda.zstd_decompress(read(joinpath(new_path, "recordings_custom.msgpack.zst"))))
+        old_recordings = MsgPack.unpack(Onda.zstd_decompress(read(joinpath(old_path,
+                                                                           "recordings.msgpack.zst"))))[2]
+        new_customs = MsgPack.unpack(Onda.zstd_decompress(read(joinpath(new_path,
+                                                                        "recordings_custom.msgpack.zst"))))
         @test length(dataset.recordings) == 1
         @test length(new_customs) == 1
         uuid = first(keys(dataset.recordings))
         recording = first(values(dataset.recordings))
         old_recording = first(values(old_recordings))
-        @test string(uuid) == first(keys(new_customs)) == first(keys(old_recordings))
+        @test string(uuid) ==
+              first(keys(new_customs)) ==
+              first(keys(old_recordings))
         @test first(values(new_customs)) == old_recording["custom"]
         sorted_annotations = sort(collect(recording.annotations); by=first)
-        sorted_old_annotations = sort(old_recording["annotations"]; by=(x -> x["start_nanosecond"]))
+        sorted_old_annotations = sort(old_recording["annotations"];
+                                      by=(x -> x["start_nanosecond"]))
         @test length(sorted_annotations) == length(sorted_old_annotations)
         for (ann, old_ann) in zip(sorted_annotations, sorted_old_annotations)
             @test ann.value == string(old_ann["key"], '.', old_ann["value"])
@@ -233,11 +259,14 @@ end
             old_signal = old_signals[string(signal_name)]
             @test signal.channel_names == Symbol.(old_signal["channel_names"])
             @test signal.start_nanosecond == Nanosecond(0)
-            @test signal.stop_nanosecond == Nanosecond(old_recording["duration_in_nanoseconds"])
+            @test signal.stop_nanosecond ==
+                  Nanosecond(old_recording["duration_in_nanoseconds"])
             @test signal.sample_unit == Symbol(old_signal["sample_unit"])
-            @test signal.sample_resolution_in_unit == old_signal["sample_resolution_in_unit"]
+            @test signal.sample_resolution_in_unit ==
+                  old_signal["sample_resolution_in_unit"]
             @test signal.sample_offset_in_unit == 0.0
-            @test signal.sample_type == Onda.julia_type_from_onda_sample_type(old_signal["sample_type"])
+            @test signal.sample_type ==
+                  Onda.julia_type_from_onda_sample_type(old_signal["sample_type"])
             @test signal.sample_rate == old_signal["sample_rate"]
             @test signal.file_extension == Symbol(old_signal["file_extension"])
             @test signal.file_options == old_signal["file_options"]

@@ -7,7 +7,7 @@ using Test, Onda, Dates
     @test contains(t, t)
     @test overlaps(t, t)
     @test shortest_timespan_containing([t]) == t
-    @test shortest_timespan_containing((t,t,t)) == t
+    @test shortest_timespan_containing((t, t, t)) == t
     @test duration(t) == Nanosecond(0)
     @test duration(first(t)) == first(t)
     @test_throws ArgumentError TimeSpan(4, 2)
@@ -40,11 +40,9 @@ end
 end
 
 @testset "shortest_timespan_containing(spans)" begin
-    @test shortest_timespan_containing([TimeSpan(1, 2),
-                                        TimeSpan(5, 10),
+    @test shortest_timespan_containing([TimeSpan(1, 2), TimeSpan(5, 10),
                                         TimeSpan(2, 3)]) == TimeSpan(1, 10)
-    @test shortest_timespan_containing([TimeSpan(3, 7),
-                                        TimeSpan(1, 10),
+    @test shortest_timespan_containing([TimeSpan(3, 7), TimeSpan(1, 10),
                                         TimeSpan(2, 5)]) == TimeSpan(1, 10)
 end
 

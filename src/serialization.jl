@@ -30,7 +30,8 @@ function serializer_constructor_for_file_extension(::Val{unknown}) where {unknow
     throw(ArgumentError("unknown file extension: $unknown"))
 end
 
-function register_file_extension_for_serializer(extension::Symbol, T::Type{<:AbstractLPCMSerializer})
+function register_file_extension_for_serializer(extension::Symbol,
+                                                T::Type{<:AbstractLPCMSerializer})
     error("""
           `Onda.register_file_extension_for_serializer(ext, T)` is deprecated; instead, `AbstractLPCMSerializer`
           authors should define `Onda.serializer_constructor_for_file_extension(::Val{ext}) = T`.
@@ -115,7 +116,8 @@ function deserialize_lpcm(bytes, serializer::AbstractLPCMSerializer, args...)
     return deserialize_lpcm(IOBuffer(bytes), serializer, args...)
 end
 
-function serialize_lpcm(samples::AbstractMatrix, serializer::AbstractLPCMSerializer)
+function serialize_lpcm(samples::AbstractMatrix,
+                        serializer::AbstractLPCMSerializer)
     io = IOBuffer()
     serialize_lpcm(io, samples, serializer)
     return resize!(io.data, io.size)
@@ -126,13 +128,16 @@ jump(io::IOStream, n) = (skip(io, n); nothing)
 jump(io::IOBuffer, n) = ((io.seekable ? skip(io, n) : read(io, n)); nothing)
 
 unsafe_vec_uint8(x::AbstractVector{UInt8}) = convert(Vector{UInt8}, x)
-unsafe_vec_uint8(x::Base.ReinterpretArray{UInt8,1}) = unsafe_wrap(Vector{UInt8}, pointer(x), length(x))
+function unsafe_vec_uint8(x::Base.ReinterpretArray{UInt8,1})
+    unsafe_wrap(Vector{UInt8}, pointer(x), length(x))
+end
 
 #####
 ##### `LPCM`
 #####
 
-const LPCM_SAMPLE_TYPE_UNION = Union{Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,UInt64}
+const LPCM_SAMPLE_TYPE_UNION = Union{Int8,Int16,Int32,Int64,UInt8,UInt16,UInt32,
+                                     UInt64}
 
 """
     LPCM{S}(channel_count)
@@ -160,21 +165,28 @@ function deserialize_lpcm(bytes, serializer::LPCM{S}) where {S}
     return deserialize_lpcm(bytes, serializer, 0, sample_count)
 end
 
-function deserialize_lpcm(bytes, serializer::LPCM{S}, sample_offset, sample_count) where {S}
+function deserialize_lpcm(bytes, serializer::LPCM{S}, sample_offset,
+                          sample_count) where {S}
     i = (serializer.channel_count * sample_offset) + 1
     j = serializer.channel_count * (sample_offset + sample_count)
-    return reshape(view(reinterpret(S, bytes), i:j), (serializer.channel_count, sample_count))
+    return reshape(view(reinterpret(S, bytes), i:j),
+                   (serializer.channel_count, sample_count))
 end
 
-deserialize_lpcm(io::IO, serializer::LPCM) = deserialize_lpcm(read(io), serializer)
+function deserialize_lpcm(io::IO, serializer::LPCM)
+    deserialize_lpcm(read(io), serializer)
+end
 
-function deserialize_lpcm(io::IO, serializer::LPCM{S}, sample_offset, sample_count) where {S}
+function deserialize_lpcm(io::IO, serializer::LPCM{S}, sample_offset,
+                          sample_count) where {S}
     bytes_per_sample = sizeof(S) * serializer.channel_count
     jump(io, bytes_per_sample * sample_offset)
-    return deserialize_lpcm(read(io, bytes_per_sample * sample_count), serializer)
+    return deserialize_lpcm(read(io, bytes_per_sample * sample_count),
+                            serializer)
 end
 
-function _validate_lpcm_samples(samples::AbstractMatrix{S}, serializer::LPCM{S}) where {S}
+function _validate_lpcm_samples(samples::AbstractMatrix{S},
+                                serializer::LPCM{S}) where {S}
     serializer.channel_count == size(samples, 1) && return nothing
     throw(ArgumentError("`samples` row count does not match expected channel count"))
 end
