@@ -27,15 +27,15 @@ corresponding to the provided extension.
 This function should be overloaded for new `AbstractLPCMSerializer` subtypes.
 """
 function serializer_constructor_for_file_extension(::Val{unknown}) where {unknown}
-    throw(ArgumentError("unknown file extension: $unknown"))
+    return throw(ArgumentError("unknown file extension: $unknown"))
 end
 
 function register_file_extension_for_serializer(extension::Symbol,
                                                 T::Type{<:AbstractLPCMSerializer})
-    error("""
-          `Onda.register_file_extension_for_serializer(ext, T)` is deprecated; instead, `AbstractLPCMSerializer`
-          authors should define `Onda.serializer_constructor_for_file_extension(::Val{ext}) = T`.
-          """)
+    return error("""
+                 `Onda.register_file_extension_for_serializer(ext, T)` is deprecated; instead, `AbstractLPCMSerializer`
+                 authors should define `Onda.serializer_constructor_for_file_extension(::Val{ext}) = T`.
+                 """)
 end
 
 """
@@ -128,7 +128,7 @@ jump(io::IOBuffer, n) = ((io.seekable ? skip(io, n) : read(io, n)); nothing)
 
 unsafe_vec_uint8(x::AbstractVector{UInt8}) = convert(Vector{UInt8}, x)
 function unsafe_vec_uint8(x::Base.ReinterpretArray{UInt8,1})
-    unsafe_wrap(Vector{UInt8}, pointer(x), length(x))
+    return unsafe_wrap(Vector{UInt8}, pointer(x), length(x))
 end
 
 #####
@@ -171,7 +171,7 @@ function deserialize_lpcm(bytes, serializer::LPCM{S}, sample_offset, sample_coun
 end
 
 function deserialize_lpcm(io::IO, serializer::LPCM)
-    deserialize_lpcm(read(io), serializer)
+    return deserialize_lpcm(read(io), serializer)
 end
 
 function deserialize_lpcm(io::IO, serializer::LPCM{S}, sample_offset,
@@ -183,7 +183,7 @@ end
 
 function _validate_lpcm_samples(samples::AbstractMatrix{S}, serializer::LPCM{S}) where {S}
     serializer.channel_count == size(samples, 1) && return nothing
-    throw(ArgumentError("`samples` row count does not match expected channel count"))
+    return throw(ArgumentError("`samples` row count does not match expected channel count"))
 end
 
 function serialize_lpcm(io::IO, samples::AbstractMatrix, serializer::LPCM)

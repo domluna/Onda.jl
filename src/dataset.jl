@@ -92,7 +92,7 @@ end
 Return the samples subdirectory path corresponding to the recording specified by `uuid`.
 """
 function samples_path(dataset::Dataset, uuid::UUID)
-    joinpath(dataset.path, "samples", string(uuid))
+    return joinpath(dataset.path, "samples", string(uuid))
 end
 
 """

@@ -9,7 +9,7 @@ function Base.show(io::IO, w::TimeSpan)
 end
 
 function Base.show(io::IO, samples::Samples)
-    if get(io, :compact, false)
+    return if get(io, :compact, false)
         print(io, "Samples(", summary(samples.data), ')')
     else
         duration_in_seconds = size(samples.data, 2) / samples.signal.sample_rate
@@ -37,7 +37,7 @@ function Base.show(io::IO, samples::Samples)
 end
 
 function Base.show(io::IO, signal::Signal)
-    if get(io, :compact, false)
+    return if get(io, :compact, false)
         print(io, "Signal(", channel_names_string(signal.channel_names), ")")
     else
         println(io, "Signal:")
@@ -57,7 +57,7 @@ function Base.show(io::IO, signal::Signal)
 end
 
 function Base.show(io::IO, recording::Recording)
-    if get(io, :compact, false)
+    return if get(io, :compact, false)
         duration_string = isempty(recording.signals) ? "<no signals>" :
                           format_duration(duration(recording))
         print(io, "Recording(", duration_string, ')')
@@ -79,7 +79,8 @@ function Base.show(io::IO, recording::Recording)
 end
 
 function Base.show(io::IO, dataset::Dataset)
-    print(io, "Dataset(", dataset.path, ", ", length(dataset.recordings), " recordings)")
+    return print(io, "Dataset(", dataset.path, ", ", length(dataset.recordings),
+                 " recordings)")
 end
 
 #####

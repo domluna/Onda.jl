@@ -39,7 +39,7 @@ struct FLAC{S} <: Onda.AbstractLPCMSerializer
 end
 
 function FLAC(signal::Signal; kwargs...)
-    FLAC(LPCM(signal); sample_rate=signal.sample_rate, kwargs...)
+    return FLAC(LPCM(signal); sample_rate=signal.sample_rate, kwargs...)
 end
 
 Onda.serializer_constructor_for_file_extension(::Val{:flac}) = FLAC

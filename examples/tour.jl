@@ -46,8 +46,8 @@ spo2_signal = Signal(channel_names=[:spo2], start_nanosecond=Nanosecond(Second(3
 # hypothetically recorded must be experiencing some pretty crazy pathologies if
 # their EEG/ECG are just saw waves...
 function saws(signal)
-    [(j + i) % 100 * signal.sample_resolution_in_unit
-     for i in 1:channel_count(signal), j in 1:sample_count(signal)]
+    return [(j + i) % 100 * signal.sample_resolution_in_unit
+            for i in 1:channel_count(signal), j in 1:sample_count(signal)]
 end
 
 # The second argument in the `Samples` constructor is a `Bool` that specifies if

@@ -62,24 +62,24 @@ _rangify(i) = i
 _rangify(i::Integer) = i:i
 
 function _indices_fallback(f, samples::Samples, i::Union{Colon,AbstractRange,Integer})
-    i
+    return i
 end
 _indices_fallback(f, samples::Samples, args) = map(x -> f(samples, x), args)
 
 row_arguments(samples::Samples, args) = _rangify(_row_arguments(samples, args))
 function _row_arguments(samples::Samples, args)
-    _indices_fallback(_row_arguments, samples, args)
+    return _indices_fallback(_row_arguments, samples, args)
 end
 _row_arguments(samples::Samples, name::Symbol) = channel(samples, name)
 
 function column_arguments(samples::Samples, args)
-    _rangify(_column_arguments(samples, args))
+    return _rangify(_column_arguments(samples, args))
 end
 function _column_arguments(samples::Samples, args)
-    _indices_fallback(_column_arguments, samples, args)
+    return _indices_fallback(_column_arguments, samples, args)
 end
 function _column_arguments(samples::Samples, t::Period)
-    _column_arguments(samples, TimeSpan(t))
+    return _column_arguments(samples, TimeSpan(t))
 end
 
 function _column_arguments(samples::Samples, span::AbstractTimeSpan)
@@ -114,7 +114,7 @@ Returns the `Nanosecond` value for which `samples[TimeSpan(0, duration(samples))
     given `samples.signal.sample_rate`.
 """
 function duration(samples::Samples)
-    time_from_index(samples.signal.sample_rate, size(samples.data, 2) + 1)
+    return time_from_index(samples.signal.sample_rate, size(samples.data, 2) + 1)
 end
 
 """
@@ -161,7 +161,7 @@ dither_noise!(storage, step) = dither_noise!(Random.GLOBAL_RNG, storage, step)
 
 function _dither_noise(x, range, step)
     rs = range * x
-    if rs < step
+    return if rs < step
         return sqrt(rs * step) - step
     else
         return step - sqrt(range * (1 - x) * step)

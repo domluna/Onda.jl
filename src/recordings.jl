@@ -16,10 +16,10 @@ MsgPack.to_msgpack(::MsgPack.StringType, x::UUID) = string(x)
 
 MsgPack.msgpack_type(::Type{DataType}) = MsgPack.StringType()
 function MsgPack.from_msgpack(::Type{DataType}, x::String)
-    julia_type_from_onda_sample_type(x)
+    return julia_type_from_onda_sample_type(x)
 end
 function MsgPack.to_msgpack(::MsgPack.StringType, T::DataType)
-    onda_sample_type_from_julia_type(T)
+    return onda_sample_type_from_julia_type(T)
 end
 
 #####
@@ -35,7 +35,7 @@ function julia_type_from_onda_sample_type(t::AbstractString)
     t == "uint16" && return UInt16
     t == "uint32" && return UInt32
     t == "uint64" && return UInt64
-    error("sample type ", t, " is not supported by Onda")
+    return error("sample type ", t, " is not supported by Onda")
 end
 
 function onda_sample_type_from_julia_type(T::Type)
@@ -47,7 +47,7 @@ function onda_sample_type_from_julia_type(T::Type)
     T === UInt16 && return "uint16"
     T === UInt32 && return "uint32"
     T === UInt64 && return "uint64"
-    error("sample type ", T, " is not supported by Onda")
+    return error("sample type ", T, " is not supported by Onda")
 end
 
 #####
@@ -180,7 +180,7 @@ end
 Return `i` where `signal.channel_names[i] == name`.
 """
 function channel(signal::Signal, name::Symbol)
-    findfirst(isequal(name), signal.channel_names)
+    return findfirst(isequal(name), signal.channel_names)
 end
 
 """
@@ -218,7 +218,7 @@ Return the number of multichannel samples that fit within `duration(signal)`
 given `signal.sample_rate`.
 """
 function sample_count(signal::Signal)
-    index_from_time(signal.sample_rate, duration(signal)) - 1
+    return index_from_time(signal.sample_rate, duration(signal)) - 1
 end
 
 """
@@ -230,7 +230,7 @@ to the entirety of `signal`:
     sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
 """
 function sizeof_samples(signal::Signal)
-    sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
+    return sample_count(signal) * channel_count(signal) * sizeof(signal.sample_type)
 end
 
 #####
@@ -263,7 +263,7 @@ MsgPack.msgpack_type(::Type{Recording}) = MsgPack.StructType()
 Returns `push!(recording.annotations, annotation)`.
 """
 function annotate!(recording::Recording, annotation::Annotation)
-    push!(recording.annotations, annotation)
+    return push!(recording.annotations, annotation)
 end
 
 """
