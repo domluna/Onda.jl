@@ -175,7 +175,7 @@ using Test, Onda, Dates, MsgPack
         cp(joinpath(dataset.path, "recordings.msgpack.zst"),
            joinpath(no_samples_path, "recordings.msgpack.zst"))
         Dataset(no_samples_path; create=false)
-        @test isdir(joinpath(no_samples_path, "samples"))
+        return @test isdir(joinpath(no_samples_path, "samples"))
     end
 end
 
@@ -205,7 +205,7 @@ end
         @test_throws ArgumentError create_recording!(other, uuid)
         store!(other, uuid, :cool_stuff, samples)
         @test_throws ErrorException merge!(dataset, other; only_recordings=false)
-        @test_throws ArgumentError merge!(dataset, other; only_recordings=true)
+        return @test_throws ArgumentError merge!(dataset, other; only_recordings=true)
     end
 end
 
@@ -240,7 +240,7 @@ end
         end
         old_signals = old_recording["signals"]
         @test keys(recording.signals) == Set(Symbol.(keys(old_signals)))
-        for (signal_name, signal) in recording.signals
+        return for (signal_name, signal) in recording.signals
             old_signal = old_signals[string(signal_name)]
             @test signal.channel_names == Symbol.(old_signal["channel_names"])
             @test signal.start_nanosecond == Nanosecond(0)

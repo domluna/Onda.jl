@@ -51,6 +51,6 @@ using Test, Onda, Dates, Random, UUIDs
                                        annotations: (10 total)"""
     mktempdir() do root
         dataset = Dataset(joinpath(root, "test.onda"); create=true)
-        @test sprint(show, dataset) == "Dataset($(dataset.path), 0 recordings)"
+        return @test sprint(show, dataset) == "Dataset($(dataset.path), 0 recordings)"
     end
 end
