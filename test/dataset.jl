@@ -12,11 +12,10 @@ using Test, Onda, Dates, MsgPack
         uuid, recording = create_recording!(dataset)
         Ts = (UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64)
         sample_rate = 50.5
-        signals = Dict(Symbol(:x,
-                              i) => Signal(Symbol.([:a, :b, :c], i), Nanosecond(0),
-                                           duration_in_nanoseconds, Symbol(:unit, i), 0.25,
-                                           i, T, sample_rate, Symbol("lpcm.zst"), nothing)
-                       for (i, T) in enumerate(Ts))
+        signals = Dict(Symbol(:x, i) => Signal(Symbol.([:a, :b, :c], i), Nanosecond(0),
+                                               duration_in_nanoseconds, Symbol(:unit, i),
+                                               0.25, i, T, sample_rate, Symbol("lpcm.zst"),
+                                               nothing) for (i, T) in enumerate(Ts))
         samples = Dict(k => Samples(v, true, rand(v.sample_type, 3, sample_count(v)))
                        for (k, v) in signals)
         for (name, s) in samples

@@ -161,7 +161,7 @@ uuid, recording = first(dataset.recordings)
 # Grab the first spike annotation we see...
 spike_annotation = first(ann
                          for ann in recording.annotations
-                             if ann.value == "epileptiform_spike")
+                         if ann.value == "epileptiform_spike")
 
 # ...and load that segment of the EEG from disk as a `Samples` instance!
 spike_segment = load(dataset, uuid, :eeg, spike_annotation)

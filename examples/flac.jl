@@ -45,11 +45,11 @@ end
 Onda.serializer_constructor_for_file_extension(::Val{:flac}) = FLAC
 
 function flac_raw_specification_flags(serializer::FLAC{S}) where {S}
-    return (level = "--compression-level-$(serializer.level)", endian = "--endian=little",
-            channels = "--channels=$(serializer.lpcm.channel_count)",
-            bps = "--bps=$(sizeof(S) * 8)",
-            sample_rate = "--sample-rate=$(serializer.sample_rate)",
-            is_signed = string("--sign=", S <: Signed ? "signed" : "unsigned"))
+    return (level="--compression-level-$(serializer.level)", endian="--endian=little",
+            channels="--channels=$(serializer.lpcm.channel_count)",
+            bps="--bps=$(sizeof(S) * 8)",
+            sample_rate="--sample-rate=$(serializer.sample_rate)",
+            is_signed=string("--sign=", S <: Signed ? "signed" : "unsigned"))
 end
 
 function Onda.deserialize_lpcm(io::IO, serializer::FLAC, args...)
