@@ -23,7 +23,7 @@ function Dataset(path; create::Bool=false)
     if create
         if isdir(path)
             isempty(readdir(path)) ||
-            throw(ArgumentError("cannot create dataset at $path: directory exists and is nonempty"))
+                throw(ArgumentError("cannot create dataset at $path: directory exists and is nonempty"))
         else
             mkdir(path)
         end
@@ -70,7 +70,7 @@ NOTE: This function is currently only implemented when `only_recordings = true`.
 function Base.merge!(destination::Dataset, datasets::Dataset...;
                      only_recordings::Bool=false)
     only_recordings ||
-    error("`merge!(datasets::Dataset...; only_recordings=false)` is not yet implemented")
+        error("`merge!(datasets::Dataset...; only_recordings=false)` is not yet implemented")
     for dataset in datasets
         for uuid in keys(dataset.recordings)
             if haskey(destination.recordings, uuid)

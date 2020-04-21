@@ -106,7 +106,7 @@ function upgrade_onda_format_from_v0_2_to_v0_3!(path, combine_annotation_key_val
     read(io, UInt8) == 0x92 || error("corrupt recordings.msgpack.zst")
     header = MsgPack.unpack(io, Header)
     v"0.2" <= header.onda_format_version < v"0.3" ||
-    error("unsupported original onda_format_version: $(header.onda_format_version)")
+        error("unsupported original onda_format_version: $(header.onda_format_version)")
     recordings = MsgPack.unpack(io, Dict{UUID,Any})
     customs = Dict{UUID,Any}(uuid => recording["custom"]
                              for (uuid, recording) in recordings)

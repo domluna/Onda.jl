@@ -274,7 +274,7 @@ Returns `maximum(s -> s.stop_nanosecond, values(recording.signals))`; throws an
 """
 function duration(recording::Recording)
     isempty(recording.signals) &&
-    throw(ArgumentError("`duration(recording)` is not defined if `isempty(recording.signals)`"))
+        throw(ArgumentError("`duration(recording)` is not defined if `isempty(recording.signals)`"))
     return maximum(s -> s.stop_nanosecond, values(recording.signals))
 end
 

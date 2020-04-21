@@ -33,7 +33,7 @@ struct FLAC{S} <: Onda.AbstractLPCMSerializer
     function FLAC(lpcm::LPCM{S}; sample_rate, level=5) where {S}
         sizeof(S) in (1, 2) || throw(ArgumentError("bit depth must be 8 or 16"))
         1 <= lpcm.channel_count <= 8 ||
-        throw(ArgumentError("channel count must be between 1 and 8"))
+            throw(ArgumentError("channel count must be between 1 and 8"))
         return new{S}(lpcm, sample_rate, level)
     end
 end
